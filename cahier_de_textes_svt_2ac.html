@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cahier de Textes SVT - 2ème APIC (Collège Nahda)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f4f9',
+                            100: '#e1e8f3',
+                            200: '#c3d2e7',
+                            500: '#1b4985',
+                            600: '#102c57',
+                            700: '#0b1d3a',
+                            800: '#061021',
+                        },
+                        accent: {
+                            500: '#0284c7',
+                            600: '#0369a1',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; }
+            .print-card { border: 1px solid #ccc !important; box-shadow: none !important; }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(16, 44, 87, 0.3);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-200" 
+      x-data="cahierApp()" x-init="initData()">
+
+    <!-- Main Mobile & Desktop Wrapper -->
+    <div class="min-h-screen flex flex-col">
+        
+        <!-- TOP NAVIGATION BAR (Header) -->
+        <header class="bg-brand-600 text-white shadow-md sticky top-0 z-30 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    
+                    <!-- Title & Identity -->
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+                            <i data-lucide="book-open" class="w-6 h-6 text-sky-300"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Cahier de Textes SVT</h1>
+                            <p class="text-xs text-brand-200 hidden sm:block">2ème APIC • Collège Nahda • Khémisset (2026/2027)</p>
+                        </div>
+                    </div>
+
+                    <!-- Right Quick Actions -->
+                    <div class="flex items-center space-x-2 sm:space-x-4">
+                        <!-- Stat Badge -->
+                        <div class="hidden md:flex items-center bg-brand-700 px-3 py-1.5 rounded-full text-xs font-medium text-brand-100 border border-brand-500/30">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 mr-1.5 text-emerald-400"></i>
+                            <span x-text="completedCount() + '/' + sessions.length + ' Séances'"></span>
+                        </div>
+
+                        <!-- Export / Print button -->
+                        <button @click="window.print()" class="p-2 text-brand-100 hover:text-white hover:bg-brand-500/50 rounded-lg transition-colors" title="Imprimer le Cahier de Textes">
+                            <i data-lucide="printer" class="w-5 h-5"></i>
+                        </button>
+
+                        <button @click="exportJSON()" class="p-2 text-brand-100 hover:text-white hover:bg-brand-500/50 rounded-lg transition-colors" title="Sauvegarder Données (JSON)">
+                            <i data-lucide="download" class="w-5 h-5"></i>
+                        </button>
+
+                        <!-- Dark mode toggle -->
+                        <button @click="toggleDarkMode()" class="p-2 text-brand-100 hover:text-white hover:bg-brand-500/50 rounded-lg transition-colors">
+                            <i data-lucide="moon" class="w-5 h-5" x-show="!darkMode"></i>
+                            <i data-lucide="sun" class="w-5 h-5 text-amber-300" x-show="darkMode"></i>
+                        </button>
+
+                        <!-- Teacher Info Mobile Dropdown toggle -->
+                        <button @click="showInfoModal = true" class="flex items-center space-x-2 pl-2 border-l border-brand-500/40">
+                            <div class="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center font-semibold text-xs text-white shadow">
+                                RY
+                            </div>
+                            <span class="text-xs font-medium hidden lg:inline-block">R. YOUSFI</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </header>
+
+        <!-- OFFICIAL HEADER FOR PRINT ONLY -->
+        <div class="hidden print-only p-6 border-b border-slate-300 mb-6">
+            <div class="flex justify-between items-center text-center">
+                <div class="text-xs space-y-1">
+                    <p class="font-bold">ROYAUME DU MAROC</p>
+                    <p>Ministère de l'Éducation Nationale</p>
+                    <p>Direction Provinciale: Khémisset</p>
+                    <p class="font-semibold">Collège: Nahda</p>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold uppercase tracking-wide">Cahier de Textes Officiel</h1>
+                    <p class="text-sm">Sciences de la Vie et de la Terre (SVT APIC)</p>
+                    <p class="text-xs text-slate-600">Niveau: 2ème APIC | Année Scolaire: 2026/2027</p>
+                </div>
+                <div class="text-xs text-right space-y-1">
+                    <p><strong>Enseignant:</strong> RACHID YOUSFI</p>
+                    <p><strong>Inspecteur:</strong> _________________</p>
+                    <p><strong>Directeur:</strong> _________________</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT LAYOUT -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+            <!-- DASHBOARD STATS CARDS (No Print) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+                <!-- Card 1: Progression -->
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/60 flex items-center space-x-4">
+                    <div class="p-3 bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-sky-400 rounded-lg">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Progression globale</p>
+                        <div class="flex items-baseline space-x-2">
+                            <h3 class="text-xl font-bold" x-text="progressPercent() + '%'"></h3>
+                            <span class="text-xs text-slate-400" x-text="completedCount() + '/' + sessions.length + ' séances'"></span>
+                        </div>
+                        <div class="w-32 bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                            <div class="bg-brand-500 h-full rounded-full transition-all duration-500" :style="'width: ' + progressPercent() + '%'"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Current Period -->
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/60 flex items-center space-x-4">
+                    <div class="p-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                        <i data-lucide="calendar" class="w-6 h-6"></i>
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Période Active</p>
+                        <h3 class="text-sm font-bold truncate" x-text="selectedPeriod === 'ALL' ? 'Toutes les périodes' : selectedPeriod"></h3>
+                        <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium mt-0.5" x-text="filteredSessions().length + ' séances affichées'"></p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Next Evaluation -->
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/60 flex items-center space-x-4">
+                    <div class="p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-lg">
+                        <i data-lucide="file-check" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Évaluations prévu</p>
+                        <h3 class="text-sm font-bold">4 Contrôles Surveillés</h3>
+                        <p class="text-xs text-amber-600 dark:text-amber-400 font-medium mt-0.5">S1: CS1, CS2 | S2: CS3, CS4</p>
+                    </div>
+                </div>
+
+                <!-- Card 4: Quick Action -->
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Filtre rapide</p>
+                        <h3 class="text-sm font-bold">Séances non réalisées</h3>
+                        <p class="text-xs text-rose-500 font-medium mt-0.5" x-text="(sessions.length - completedCount()) + ' restantes'"></p>
+                    </div>
+                    <button @click="statusFilter = (statusFilter === 'pending' ? 'all' : 'pending')" 
+                            :class="statusFilter === 'pending' ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                        <span x-text="statusFilter === 'pending' ? 'Voir Tout' : 'Filtrer'"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SEARCH & FILTERS BAR (No Print) -->
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/60 space-y-4 no-print">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    
+                    <!-- Search Input -->
+                    <div class="relative flex-1">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" x-model="searchQuery" placeholder="Rechercher tâche, chapitre, compétence, mot-clé..." 
+                               class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+                        <button x-show="searchQuery" @click="searchQuery = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Period Filter Dropdown -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="w-full sm:w-auto">
+                            <select x-model="selectedPeriod" class="w-full py-2 px-3 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                <option value="ALL">Toutes les Périodes (Annuel)</option>
+                                <template x-for="p in periods" :key="p.id">
+                                    <option :value="p.id" x-text="p.title"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <!-- Status Filter Filter Tabs -->
+                        <div class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+                            <button @click="statusFilter = 'all'" :class="statusFilter === 'all' ? 'bg-white dark:bg-slate-800 shadow-sm text-brand-600 dark:text-sky-400 font-semibold' : 'text-slate-500'" class="px-3 py-1.5 rounded-md transition-all">Tous</button>
+                            <button @click="statusFilter = 'done'" :class="statusFilter === 'done' ? 'bg-white dark:bg-slate-800 shadow-sm text-emerald-600 font-semibold' : 'text-slate-500'" class="px-3 py-1.5 rounded-md transition-all">Fait</button>
+                            <button @click="statusFilter = 'pending'" :class="statusFilter === 'pending' ? 'bg-white dark:bg-slate-800 shadow-sm text-rose-500 font-semibold' : 'text-slate-500'" class="px-3 py-1.5 rounded-md transition-all">En cours</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Period Quick Nav Pills -->
+                <div class="flex items-center space-x-2 overflow-x-auto pb-1 custom-scrollbar text-xs">
+                    <span class="text-slate-400 font-medium text-2xs uppercase tracking-wider whitespace-nowrap">Accès rapide:</span>
+                    <button @click="selectedPeriod = 'ALL'" 
+                            :class="selectedPeriod === 'ALL' ? 'bg-brand-600 text-white font-medium' : 'bg-slate-100 dark:bg-slate-700/60 hover:bg-slate-200 text-slate-600 dark:text-slate-300'" 
+                            class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap">Tout</button>
+                    <template x-for="p in periods" :key="p.id">
+                        <button @click="selectedPeriod = p.id" 
+                                :class="selectedPeriod === p.id ? 'bg-brand-600 text-white font-medium' : 'bg-slate-100 dark:bg-slate-700/60 hover:bg-slate-200 text-slate-600 dark:text-slate-300'" 
+                                class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap"
+                                x-text="p.shortName"></button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- LOGBOOK MAIN TABLE / CARDS CONTAINER -->
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/60 overflow-hidden print-card">
+                
+                <!-- Table Header info bar -->
+                <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="list-checks" class="w-5 h-5 text-brand-600 dark:text-sky-400"></i>
+                        <h2 class="font-bold text-slate-800 dark:text-slate-100">Registre des séances & Activités</h2>
+                    </div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400">
+                        Affichage de <span class="font-bold text-brand-600 dark:text-sky-400" x-text="filteredSessions().length"></span> séance(s)
+                    </div>
+                </div>
+
+                <!-- TABLE VIEW -->
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left text-xs sm:text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 uppercase text-2xs tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                <th class="py-3 px-4 w-12 text-center no-print">Etat</th>
+                                <th class="py-3 px-4 w-32">Semaine / Date</th>
+                                <th class="py-3 px-4 w-28">Séance</th>
+                                <th class="py-3 px-4">Contenus & Tâches d'apprentissage</th>
+                                <th class="py-3 px-4 w-28">Savoir-Faire / Comp.</th>
+                                <th class="py-3 px-4 w-44">Observations / Critiques</th>
+                                <th class="py-3 px-4 w-16 text-center no-print">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-700/60">
+                            <template x-for="session in filteredSessions()" :key="session.id">
+                                <tr :class="{
+                                        'bg-emerald-50/40 dark:bg-emerald-950/10': session.completed,
+                                        'bg-amber-50/30 dark:bg-amber-950/10': session.isHoliday || session.isExam,
+                                        'hover:bg-slate-50 dark:hover:bg-slate-700/30': !session.completed
+                                    }" 
+                                    class="transition-colors group">
+                                    
+                                    <!-- Status checkbox -->
+                                    <td class="py-3 px-4 text-center no-print">
+                                        <button @click="toggleStatus(session)" 
+                                                :class="session.completed ? 'bg-emerald-500 text-white' : 'border-2 border-slate-300 dark:border-slate-600 hover:border-brand-500'"
+                                                class="w-5 h-5 rounded flex items-center justify-center transition-all mx-auto">
+                                            <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]" x-show="session.completed"></i>
+                                        </button>
+                                    </td>
+
+                                    <!-- Date & Week -->
+                                    <td class="py-3 px-4 align-top">
+                                        <div class="font-semibold text-slate-700 dark:text-slate-200" x-text="session.week"></div>
+                                        <div class="text-2xs text-slate-400 mt-0.5" x-text="session.periodName"></div>
+                                        
+                                        <!-- Interactive Date Setter -->
+                                        <div class="mt-1.5 no-print">
+                                            <input type="date" x-model="session.realDate" @change="saveLocalData()"
+                                                   class="text-2xs px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                                        </div>
+                                        <div class="hidden print-only text-2xs font-semibold text-slate-600 mt-1" x-text="session.realDate ? 'Fait le: ' + session.realDate : 'Date: ____/____'"></div>
+                                    </td>
+
+                                    <!-- Séance / Type -->
+                                    <td class="py-3 px-4 align-top">
+                                        <span class="inline-block px-2 py-0.5 rounded font-medium text-xs shadow-2xs"
+                                              :class="{
+                                                  'bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-sky-300': session.seance.includes('Séance'),
+                                                  'bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300': session.seance.includes('Test') || session.seance.includes('Éval') || session.seance.includes('Bilan'),
+                                                  'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300': session.isHoliday,
+                                                  'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300': session.isExam
+                                              }"
+                                              x-text="session.seance">
+                                        </span>
+                                        <div class="text-2xs text-slate-400 mt-1" x-text="session.ref || ''"></div>
+                                    </td>
+
+                                    <!-- Contenus & Tâches -->
+                                    <td class="py-3 px-4 align-top space-y-1">
+                                        <!-- Chapter Header if present -->
+                                        <template x-if="session.chapter">
+                                            <div class="text-xs font-bold text-brand-600 dark:text-sky-400 uppercase tracking-tight" x-text="session.chapter"></div>
+                                        </template>
+                                        <!-- Sequence if present -->
+                                        <template x-if="session.sequence">
+                                            <div class="text-xs font-semibold text-slate-600 dark:text-slate-400 italic" x-text="session.sequence"></div>
+                                        </template>
+                                        <!-- Task Main Title -->
+                                        <div class="text-sm font-medium text-slate-800 dark:text-slate-100 leading-snug" x-text="session.task"></div>
+                                    </td>
+
+                                    <!-- Savoir-faire & Compétences -->
+                                    <td class="py-3 px-4 align-top space-y-1">
+                                        <template x-if="session.savoirFaire">
+                                            <span class="inline-block px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-2xs font-mono font-semibold" x-text="session.savoirFaire"></span>
+                                        </template>
+                                        <template x-if="session.competence">
+                                            <div class="text-2xs text-slate-500 dark:text-slate-400 leading-tight" x-text="session.competence"></div>
+                                        </template>
+                                    </td>
+
+                                    <!-- Observations & Notes -->
+                                    <td class="py-3 px-4 align-top">
+                                        <div x-show="!session.editing" @click="session.editing = true; $nextTick(() => $refs.obsInput.focus())" 
+                                             class="cursor-pointer min-h-[38px] p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700/50 text-xs text-slate-600 dark:text-slate-300 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all">
+                                            <p x-text="session.observation || 'Cliquez pour ajouter une observation...'" :class="{'italic text-slate-400': !session.observation}"></p>
+                                        </div>
+                                        
+                                        <!-- Edit observation box -->
+                                        <div x-show="session.editing" @click.away="session.editing = false; saveLocalData()" class="no-print space-y-2">
+                                            <textarea x-ref="obsInput" x-model="session.observation" placeholder="Remarques, absents, soutien..."
+                                                      class="w-full text-xs p-1.5 border border-brand-500 rounded bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none" rows="2"></textarea>
+                                            <div class="flex justify-end space-x-1">
+                                                <button @click="session.editing = false; saveLocalData()" class="px-2 py-0.5 bg-brand-600 text-white rounded text-2xs font-semibold">Valider</button>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Actions -->
+                                    <td class="py-3 px-4 text-center align-top no-print">
+                                        <button @click="openDetailModal(session)" class="p-1.5 text-slate-400 hover:text-brand-600 dark:hover:text-sky-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Détails & Édition">
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </button>
+                                    </td>
+
+                                </tr>
+                            </template>
+                            
+                            <!-- Empty State -->
+                            <tr x-show="filteredSessions().length === 0">
+                                <td colspan="7" class="py-12 text-center text-slate-400">
+                                    <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+                                    <p class="text-base font-medium">Aucune séance trouvée</p>
+                                    <p class="text-xs text-slate-500 mt-1">Essayez de modifier votre recherche ou vos filtres.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- FOOTER (No print) -->
+        <footer class="mt-auto bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700/60 py-4 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
+                <p>© 2026/2027 Collège Nahda - Direction Khémisset. Cahier de Textes Numérique SVT APIC.</p>
+                <div class="flex items-center space-x-4">
+                    <button @click="resetData()" class="hover:text-rose-500 transition-colors">Réinitialiser les données</button>
+                    <span>•</span>
+                    <button @click="window.print()" class="hover:text-brand-600 dark:hover:text-sky-400 transition-colors">Version Imprimable</button>
+                </div>
+            </div>
+        </footer>
+
+        <!-- EDIT SESSION MODAL -->
+        <div x-show="detailModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 no-print" x-cloak>
+            <div @click.away="detailModalOpen = false" class="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-lg w-full p-6 space-y-4">
+                
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100" x-text="'Détails - ' + (activeSession ? activeSession.seance : '')"></h3>
+                    <button @click="detailModalOpen = false" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+
+                <template x-if="activeSession">
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Semaine & Période</label>
+                            <input type="text" x-model="activeSession.week" class="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Chapitre / Thème</label>
+                            <input type="text" x-model="activeSession.chapter" class="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Contenu / Tâche d'apprentissage</label>
+                            <textarea x-model="activeSession.task" rows="3" class="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Date Réelle d'exécution</label>
+                            <input type="date" x-model="activeSession.realDate" class="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Observations & Bilan de séance</label>
+                            <textarea x-model="activeSession.observation" rows="3" placeholder="Saisir des critiques, taux de réussite ou remarques..." class="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"></textarea>
+                        </div>
+
+                        <div class="flex items-center space-x-2 pt-2">
+                            <input type="checkbox" id="modalCompleted" x-model="activeSession.completed" class="w-4 h-4 text-brand-600 rounded">
+                            <label for="modalCompleted" class="text-xs font-semibold text-slate-700 dark:text-slate-200">Marquer cette séance comme réalisée</label>
+                        </div>
+                    </div>
+                </template>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <button @click="detailModalOpen = false; saveLocalData()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold transition-colors">Enregistrer</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- INFO MODAL (Teacher Header Info) -->
+        <div x-show="showInfoModal" x-transition.opacity class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 no-print" x-cloak>
+            <div @click.away="showInfoModal = false" class="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100">Informations de l'Enseignant</h3>
+                    <button @click="showInfoModal = false" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="space-y-2 text-xs">
+                    <p><strong>Enseignant:</strong> RACHID YOUSFI</p>
+                    <p><strong>Discipline:</strong> SVT (Section FR APIC)</p>
+                    <p><strong>Niveau:</strong> 2ème Année Parcours International Collégial</p>
+                    <p><strong>Établissement:</strong> Collège Nahda</p>
+                    <p><strong>Direction Provinciale:</strong> Khémisset</p>
+                    <p><strong>Année Scolaire:</strong> 2026 / 2027</p>
+                </div>
+                <button @click="showInfoModal = false" class="w-full py-2 bg-brand-600 text-white rounded-lg text-xs font-semibold">Fermer</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ALPINE LOGIC & DATA -->
+    <script>
+        function cahierApp() {
+            return {
+                darkMode: false,
+                selectedPeriod: 'ALL',
+                statusFilter: 'all',
+                searchQuery: '',
+                detailModalOpen: false,
+                showInfoModal: false,
+                activeSession: null,
+
+                periods: [
+                    { id: 'P0', title: 'Période 0 : Diagnostic & Remédiation', shortName: 'P0: Diagnostic' },
+                    { id: 'P1', title: 'Période 1 : Écosystèmes & Flux d\'énergie', shortName: 'P1: Écosystèmes' },
+                    { id: 'P2', title: 'Période 2 : Dynamique des populations & Croissance', shortName: 'P2: Populations' },
+                    { id: 'P3', title: 'Période 3 : Corps humain & Santé (Immunité)', shortName: 'P3: Santé' },
+                    { id: 'P4_5', title: 'Périodes 4 & 5 : Planète Terre & Environnement', shortName: 'P4/5: Terre & Env.' }
+                ],
+
+                sessions: [],
+
+                initData() {
+                    const saved = localStorage.getItem('svt_cahier_data_2ac');
+                    if (saved) {
+                        try {
+                            this.sessions = JSON.parse(saved);
+                        } catch(e) {
+                            this.loadDefaultSessions();
+                        }
+                    } else {
+                        this.loadDefaultSessions();
+                    }
+
+                    this.$nextTick(() => {
+                        lucide.createIcons();
+                    });
+                },
+
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                },
+
+                loadDefaultSessions() {
+                    this.sessions = [
+                        // PÉRIODE 0
+                        { id: 1, period: 'P0', periodName: 'Période 0', week: '01/09/26 - 06/09/26', seance: 'Rentrée', chapter: 'Période 0 : Orientations', sequence: '', task: 'Signature du PV d\'entrée, conseils pédagogiques et accueil des apprenants.', ref: 'Rentrée', savoirFaire: '', competence: '', completed: true, realDate: '2026-09-02', observation: 'Séance de prise de contact effectuée.' },
+                        { id: 2, period: 'P0', periodName: 'Période 0', week: '07/09/26 - 13/09/26', seance: 'Éval. Diag.', chapter: 'Période 0 : Évaluation', sequence: '', task: 'Test de pré-positionnement, correction collective et saisie des notes sur MASAR.', ref: 'Éval. Diag.', savoirFaire: '', competence: '', completed: true, realDate: '2026-09-09', observation: 'Notes saisies sur le système MASAR.' },
+                        { id: 3, period: 'P0', periodName: 'Période 0', week: '14/09/26 - 20/09/26', seance: 'Séance 1', chapter: 'PALIER 1 : Méthodologie', sequence: '', task: 'Tâche 1: Identifier la variable indépendante et les variables dépendantes.', ref: 'Pages 5-7', savoirFaire: 'A1.1', competence: 'C-C1', completed: true, realDate: '2026-09-16', observation: '' },
+                        { id: 4, period: 'P0', periodName: 'Période 0', week: '14/09/26 - 20/09/26', seance: 'Séance 2', chapter: 'PALIER 1 : Méthodologie', sequence: '', task: 'Tâche 2: Lire un tableau simple à trois lignes.', ref: 'Pages 8-10', savoirFaire: 'A1.1', competence: 'C-C1', completed: false, realDate: '', observation: '' },
+                        { id: 5, period: 'P0', periodName: 'Période 0', week: '21/09/26 - 27/09/26', seance: 'Séance 3', chapter: 'PALIER 1 : Méthodologie', sequence: '', task: 'Tâche 3: Construire un tableau simple de données scientifiques.', ref: 'Pages 11-13', savoirFaire: 'A1.2', competence: 'C-C1', completed: false, realDate: '', observation: '' },
+                        { id: 6, period: 'P0', periodName: 'Période 0', week: '21/09/26 - 27/09/26', seance: 'Séance 4', chapter: 'PALIER 1 : Bilan', sequence: '', task: 'CONSOLIDATION 1: Exercices d\'application & Mini-Test 1 (Palier 1).', ref: 'Pages 11-22', savoirFaire: 'A1.2', competence: 'C-C1', completed: false, realDate: '', observation: '' },
+                        { id: 7, period: 'P0', periodName: 'Période 0', week: '28/09/26 - 04/10/26', seance: 'Séance 5', chapter: 'PALIER 2 : Graphiques', sequence: '', task: 'Tâche 4: Lire un graphique en courbe à plusieurs segments.', ref: 'Pages 24-26', savoirFaire: 'A1.3', competence: 'C-C2', completed: false, realDate: '', observation: '' },
+                        { id: 8, period: 'P0', periodName: 'Période 0', week: '28/09/26 - 04/10/26', seance: 'Séance 6', chapter: 'PALIER 2 : Graphiques', sequence: '', task: 'Tâche 5: Construire un graphique en courbe à plusieurs segments.', ref: 'Pages 27-29', savoirFaire: 'A1.3', competence: 'C-C2', completed: false, realDate: '', observation: '' },
+                        { id: 9, period: 'P0', periodName: 'Période 0', week: '05/10/26 - 11/10/26', seance: 'Séance 7', chapter: 'PALIER 2 : Consolidation', sequence: '', task: 'Consolidation 2: Renforcement de la construction graphique.', ref: 'Pages 30-32', savoirFaire: 'A1.3', competence: 'C-C2', completed: false, realDate: '', observation: '' },
+                        { id: 10, period: 'P0', periodName: 'Période 0', week: '05/10/26 - 11/10/26', seance: 'Séance 8', chapter: 'PALIER 2 : Remédiation', sequence: '', task: 'Exemple de Post-Test: Correction guidée et remédiation ciblée.', ref: 'Pages 35-36', savoirFaire: 'A1.3', competence: 'C-C2', completed: false, realDate: '', observation: '' },
+                        { id: 11, period: 'P0', periodName: 'Période 0', week: '12/10/26 - 18/10/26', seance: 'Bilan Diag.', chapter: 'Période 0 : Post-Test', sequence: '', task: 'Test de Post-positionnement, correction et saisie des notes sur MASAR.', ref: 'Bilan Diag.', savoirFaire: '', competence: '', completed: false, realDate: '', observation: '' },
+                        { id: 12, period: 'P0', periodName: 'Période 0', week: '18/10/26 - 25/10/26', seance: 'Vacances', chapter: 'Interruption des cours', sequence: '', task: 'VACANCES INTERMÉDIAIRES 1 (1 Semaine)', ref: 'Congé', savoirFaire: '', competence: '', completed: false, isHoliday: true, realDate: '', observation: '' },
+
+                        // PÉRIODE 1
+                        { id: 13, period: 'P1', periodName: 'Période 1', week: '26/10/26 - 01/11/26', seance: 'Séance 1', chapter: 'Chapitre 1 : Les écosystèmes', sequence: 'Séquence 1: Relations trophiques', task: 'Tâche 1: Identifier le type de relation entre deux êtres vivants.', ref: 'Thème 1', savoirFaire: 'A1.1', competence: 'C-C1 (C1.5)', completed: false, realDate: '', observation: '' },
+                        { id: 14, period: 'P1', periodName: 'Période 1', week: '26/10/26 - 01/11/26', seance: 'Séance 2', chapter: 'Chapitre 2 : Cycles & Flux', sequence: 'Séquence 1: Échange matière/énergie', task: 'Tâche 2: Décrire le processus de base de la photosynthèse.', ref: 'Thème 1', savoirFaire: 'A2.1', competence: 'C-C1 (C1.4)', completed: false, realDate: '', observation: '' },
+                        { id: 15, period: 'P1', periodName: 'Période 1', week: '02/11/26 - 08/11/26', seance: 'Séance 3', chapter: 'Chapitre 2 : Cycles & Flux', sequence: 'Séquence 1: Respiration', task: 'Tâche 3: Décrire le processus de base de la respiration cellulaire.', ref: 'Thème 1', savoirFaire: 'A2.1', competence: 'C-C1 (C1.4)', completed: false, realDate: '', observation: '' },
+                        { id: 16, period: 'P1', periodName: 'Période 1', week: '02/11/26 - 08/11/26', seance: 'Séance 4', chapter: 'Chapitre 2 : Cycles & Flux', sequence: 'Séquence 1: Synthèse', task: 'Tâche 4: Réaliser un schéma de synthèse du cycle de la matière.', ref: 'Thème 1', savoirFaire: 'A2.2', competence: 'C-C2 (C2.3)', completed: false, realDate: '', observation: '' },
+                        { id: 17, period: 'P1', periodName: 'Période 1', week: '09/11/26 - 15/11/26', seance: 'Séance 5', chapter: 'Chapitre 2 : Remédiation', sequence: '', task: 'Consolidation 1: Tâche 1 (fiche au choix) et Tâche 2.', ref: 'Soutien', savoirFaire: '', competence: 'Remédiation', completed: false, realDate: '', observation: '' },
+                        { id: 18, period: 'P1', periodName: 'Période 1', week: '09/11/26 - 15/11/26', seance: 'Séance 6', chapter: 'Chapitre 2 : Transfert', sequence: 'Séquence 2: Transfert & Flux', task: 'Tâche 5: Identifier les niveaux trophiques à partir des chaînes/réseaux.', ref: 'Thème 1', savoirFaire: 'A2.3', competence: 'C-C1 (C1.4)', completed: false, realDate: '', observation: '' },
+                        { id: 19, period: 'P1', periodName: 'Période 1', week: '16/11/26 - 22/11/26', seance: 'Séance 7', chapter: 'Chapitre 2 : Transfert', sequence: 'Séquence 2: Transfert & Flux', task: 'Tâche 6: Expliquer le transfert de matière à travers les niveaux trophiques.', ref: 'Thème 1', savoirFaire: 'A2.4', competence: 'P-P (P1, P2)', completed: false, realDate: '', observation: '' },
+                        { id: 20, period: 'P1', periodName: 'Période 1', week: '16/11/26 - 22/11/26', seance: 'Séance 8', chapter: 'Chapitre 2 : Transfert', sequence: 'Séquence 2: Flux d\'énergie', task: 'Tâche 7: Expliquer le transfert de l\'énergie à travers les niveaux trophiques.', ref: 'Thème 1', savoirFaire: 'A2.4', competence: 'P-P (P1, P2)', completed: false, realDate: '', observation: '' },
+                        { id: 21, period: 'P1', periodName: 'Période 1', week: '23/11/26 - 29/11/26', seance: 'Séance 9', chapter: 'Chapitre 2 : Consolidation', sequence: '', task: 'Consolidation 2: Consolidation des Tâches 3 et 4.', ref: 'Renforcement', savoirFaire: '', competence: 'Acquis', completed: false, realDate: '', observation: '' },
+                        { id: 22, period: 'P1', periodName: 'Période 1', week: '23/11/26 - 29/11/26', seance: 'Séance 10', chapter: 'Chapitre 2 : Consolidation', sequence: '', task: 'Consolidation 3: Consolidation des Tâches 5 et 6.', ref: 'Renforcement', savoirFaire: '', competence: 'Acquis', completed: false, realDate: '', observation: '' },
+                        { id: 23, period: 'P1', periodName: 'Période 1', week: '30/11/26 - 06/12/26', seance: 'Séance 11', chapter: 'Évaluation Période 1', sequence: '', task: 'Devoir à la maison: Synthèse de la Période 1.', ref: 'Éval Continuous', savoirFaire: '', competence: '', completed: false, realDate: '', observation: '' },
+                        { id: 24, period: 'P1', periodName: 'Période 1', week: '30/11/26 - 06/12/26', seance: 'Séance 12', chapter: 'Évaluation Sommative', sequence: '', task: 'CONTRÔLE SURVEILLÉ N°1', ref: 'CS N°1', savoirFaire: '', competence: 'Sommative 1', completed: false, isExam: true, realDate: '', observation: '' },
+                        { id: 25, period: 'P1', periodName: 'Période 1', week: '06/12/26 - 13/12/26', seance: 'Vacances', chapter: 'Interruption des cours', sequence: '', task: 'VACANCES INTERMÉDIAIRES 2 (1 Semaine)', ref: 'Congé', savoirFaire: '', competence: '', completed: false, isHoliday: true, realDate: '', observation: '' },
+
+                        // PÉRIODE 2
+                        { id: 26, period: 'P2', periodName: 'Période 2', week: '14/12/26 - 20/12/26', seance: 'Séance 1', chapter: 'Séquence 3 : Cycles dans écosystème', sequence: '', task: 'Tâche 1: Décrire le cycle du carbone dans la nature.', ref: 'Cycles', savoirFaire: 'A2.5', competence: 'C-C1 (C1.1)', completed: false, realDate: '', observation: '' },
+                        { id: 27, period: 'P2', periodName: 'Période 2', week: '14/12/26 - 20/12/26', seance: 'Séance 2', chapter: 'Séquence 3 : Cycles dans écosystème', sequence: '', task: 'Tâche 2: Décrire le cycle de l\'oxygène.', ref: 'Cycles', savoirFaire: 'A2.5', competence: 'C-C1 (C1.1)', completed: false, realDate: '', observation: '' },
+                        { id: 28, period: 'P2', periodName: 'Période 2', week: '21/12/26 - 27/12/26', seance: 'Séance 3', chapter: 'Chapitre 3 : Croissance & Populations', sequence: 'Séquence 1: Facteurs de croissance', task: 'Tâche 3: Graphe de l\'effet de l\'alimentation sur la croissance animale.', ref: 'Facteurs', savoirFaire: 'A3.1', competence: 'C-C3 (C2.2)', completed: false, realDate: '', observation: '' },
+                        { id: 29, period: 'P2', periodName: 'Période 2', week: '21/12/26 - 27/12/26', seance: 'Séance 4', chapter: 'Chapitre 3 : Croissance & Populations', sequence: 'Séquence 1: Facteurs de croissance', task: 'Tâche 4: Facteurs de croissance des végétaux (expérimentation).', ref: 'Facteurs', savoirFaire: 'A3.2', competence: '1-13 (13.2)', completed: false, realDate: '', observation: '' },
+                        { id: 30, period: 'P2', periodName: 'Période 2', week: '28/12/26 - 03/01/27', seance: 'Séance 5', chapter: 'Révision & Soutien', sequence: '', task: 'Révision 1: Consolidation des concepts de croissance.', ref: 'Soutien', savoirFaire: '', competence: 'Ciblé', completed: false, realDate: '', observation: '' },
+                        { id: 31, period: 'P2', periodName: 'Période 2', week: '28/12/26 - 03/01/27', seance: 'Séance 6', chapter: 'Révision & Soutien', sequence: '', task: 'Révision 2: Analyse de données expérimentales.', ref: 'Soutien', savoirFaire: '', competence: 'Ciblé', completed: false, realDate: '', observation: '' },
+                        { id: 32, period: 'P2', periodName: 'Période 2', week: '04/01/27 - 10/01/27', seance: 'Séance 7', chapter: 'Chapitre 3 : Taille des populations', sequence: 'Séquence 2: Taille population', task: 'Tâche 5: Expliquer la variation de la taille d\'une population.', ref: 'Dynamique', savoirFaire: 'A3.3', competence: 'P-P3', completed: false, realDate: '', observation: '' },
+                        { id: 33, period: 'P2', periodName: 'Période 2', week: '04/01/27 - 10/01/27', seance: 'Séance 8', chapter: 'Chapitre 3 : Taille des populations', sequence: 'Séquence 2: Synthèse', task: 'Tâche 6: Synthèse sur la dynamique des populations.', ref: 'Dynamique', savoirFaire: 'A3.4', competence: 'C-C2', completed: false, realDate: '', observation: '' },
+                        { id: 34, period: 'P2', periodName: 'Période 2', week: '11/01/27 - 17/01/27', seance: 'Séance 9', chapter: 'Préparation Examen', sequence: '', task: 'Révision 3: Préparation globale aux évaluations.', ref: 'Préparation', savoirFaire: '', competence: 'Examen', completed: false, realDate: '', observation: '' },
+                        { id: 35, period: 'P2', periodName: 'Période 2', week: '11/01/27 - 17/01/27', seance: 'Séance 10', chapter: 'Préparation Examen', sequence: '', task: 'Révision 4: Exercices d\'application intégrés.', ref: 'Préparation', savoirFaire: '', competence: 'Examen', completed: false, realDate: '', observation: '' },
+                        { id: 36, period: 'P2', periodName: 'Période 2', week: '18/01/27 - 24/01/27', seance: 'Séance 11', chapter: 'Bilan Semestre 1', sequence: '', task: 'Révision 5: Bilan du premier semestre.', ref: 'Bilan S1', savoirFaire: '', competence: '', completed: false, realDate: '', observation: '' },
+                        { id: 37, period: 'P2', periodName: 'Période 2', week: '18/01/27 - 24/01/27', seance: 'Séance 12', chapter: 'Évaluation Sommative', sequence: '', task: 'CONTRÔLE SURVEILLÉ N°2', ref: 'CS N°2', savoirFaire: '', competence: 'Sommative 2', completed: false, isExam: true, realDate: '', observation: '' },
+                        { id: 38, period: 'P2', periodName: 'Période 2', week: '24/01/27 - 31/01/27', seance: 'Vacances', chapter: 'Interruption des cours', sequence: '', task: 'VACANCES DE FIN DE SEMESTRE 1 (1 Semaine)', ref: 'Congé', savoirFaire: '', competence: '', completed: false, isHoliday: true, realDate: '', observation: '' },
+
+                        // PÉRIODE 3
+                        { id: 39, period: 'P3', periodName: 'Période 3', week: '01/02/27 - 07/02/27', seance: 'Séance 1', chapter: 'Thème 2 : Santé & Système immunitaire', sequence: 'Chapitre 1: Immunité', task: 'Tâche 1: Causes, modes de transmission et prévention des maladies.', ref: 'Santé', savoirFaire: 'B1.1', competence: 'C-C1 (C1.2)', completed: false, realDate: '', observation: '' },
+                        { id: 40, period: 'P3', periodName: 'Période 3', week: '01/02/27 - 07/02/27', seance: 'Séance 2', chapter: 'Thème 2 : Santé & Système immunitaire', sequence: 'Chapitre 1: Immunité', task: 'Tâche 2: Déterminer l\'organisation générale du système immunitaire.', ref: 'Santé', savoirFaire: 'B2.1', competence: 'C-C1 (C1.2)', completed: false, realDate: '', observation: '' },
+                        { id: 41, period: 'P3', periodName: 'Période 3', week: '08/02/27 - 14/02/27', seance: 'Séance 3', chapter: 'Chapitre 1 : Mécanismes immunitaires', sequence: '', task: 'Tâche 3: Expliquer le rôle de la phagocytose dans l\'immunité innée.', ref: 'Santé', savoirFaire: 'B2.2', competence: 'C1/C2', completed: false, realDate: '', observation: '' },
+                        { id: 42, period: 'P3', periodName: 'Période 3', week: '08/02/27 - 14/02/27', seance: 'Séance 4', chapter: 'Chapitre 1 : Mécanismes immunitaires', sequence: '', task: 'Tâche 4: Expliquer le rôle des lymphocytes T dans la cytotoxicity.', ref: 'Santé', savoirFaire: 'B2.2', competence: 'C1/C2', completed: false, realDate: '', observation: '' },
+                        { id: 43, period: 'P3', periodName: 'Période 3', week: '15/02/27 - 21/02/27', seance: 'Séance 5', chapter: 'Révision Immunité', sequence: '', task: 'Révision 1: Immunité cellulaire et humorale.', ref: 'Soutien', savoirFaire: '', competence: 'Théorique', completed: false, realDate: '', observation: '' },
+                        { id: 44, period: 'P3', periodName: 'Période 3', week: '15/02/27 - 21/02/27', seance: 'Séance 6', chapter: 'Chapitre 1 : Anticorps', sequence: '', task: 'Tâche 5: Rôle des anticorps dans la guérison des maladies.', ref: 'Santé', savoirFaire: 'B2.2', competence: 'P-P3', completed: false, realDate: '', observation: '' },
+                        { id: 45, period: 'P3', periodName: 'Période 3', week: '15/02/27 - 21/02/27', seance: 'Séance 7', chapter: 'Chapitre 1 : Synthèse Immunité', sequence: '', task: 'Tâche 6: Synthèse de la défense immunitaire globale.', ref: 'Santé', savoirFaire: 'B2.3', competence: 'P-P3', completed: false, realDate: '', observation: '' },
+                        { id: 46, period: 'P3', periodName: 'Période 3', week: '22/02/27 - 28/02/27', seance: 'Séance 8', chapter: 'Chapitre 1 : Aides médicales', sequence: '', task: 'Tâche 7: Rôle de l\'antibiothérapie et de la vaccination.', ref: 'Santé', savoirFaire: 'B3.1', competence: 'P-P3', completed: false, realDate: '', observation: '' },
+                        { id: 47, period: 'P3', periodName: 'Période 3', week: '01/03/27 - 07/03/27', seance: 'Séance 9', chapter: 'Révision & Soutien', sequence: '', task: 'Révision 2: Consolidation des dysfonctionnements immunitaires.', ref: 'Soutien', savoirFaire: '', competence: 'Ciblé', completed: false, realDate: '', observation: '' },
+                        { id: 48, period: 'P3', periodName: 'Période 3', week: '01/03/27 - 07/03/27', seance: 'Séance 10', chapter: 'Révision & Soutien', sequence: '', task: 'Révision 3: Exercices d\'intégration sur la santé.', ref: 'Soutien', savoirFaire: '', competence: 'Ciblé', completed: false, realDate: '', observation: '' },
+                        { id: 49, period: 'P3', periodName: 'Période 3', week: '08/03/27 - 14/03/27', seance: 'Pause', chapter: 'Événement Religieux', sequence: '', task: 'ÉVÉNEMENT: AID AL FITR (Pause de cours)', ref: 'Fête', savoirFaire: '', competence: '', completed: false, isHoliday: true, realDate: '', observation: '' },
+                        { id: 50, period: 'P3', periodName: 'Période 3', week: '15/03/27 - 21/03/27', seance: 'Séance 11', chapter: 'Préparation Évaluation', sequence: '', task: 'Révision 4: Préparation au Contrôle Surveillé 3.', ref: 'Révision', savoirFaire: '', competence: 'Guidée', completed: false, realDate: '', observation: '' },
+                        { id: 51, period: 'P3', periodName: 'Période 3', week: '15/03/27 - 21/03/27', seance: 'Séance 12', chapter: 'Évaluation Sommative', sequence: '', task: 'CONTRÔLE SURVEILLÉ N°3', ref: 'CS N°3', savoirFaire: '', competence: 'Sommative 3', completed: false, isExam: true, realDate: '', observation: '' },
+                        { id: 52, period: 'P3', periodName: 'Période 3', week: '21/03/27 - 28/03/27', seance: 'Vacances', chapter: 'Interruption des cours', sequence: '', task: 'VACANCES INTERMÉDIAIRES 3 (1 Semaine)', ref: 'Congé', savoirFaire: '', competence: '', completed: false, isHoliday: true, realDate: '', observation: '' },
+
+                        // PÉRIODES 4 & 5
+                        { id: 53, period: 'P4_5', periodName: 'Périodes 4/5', week: '29/03/27 - 04/04/27', seance: 'Séance 1', chapter: 'Thème 3: Planète Terre & Environnement', sequence: '', task: 'Tâche 1: Alternance des jours/nuits (Rotation terrestre).', ref: 'Terre', savoirFaire: 'C1.1', competence: 'P-P3', completed: false, realDate: '', observation: '' },
+                        { id: 54, period: 'P4_5', periodName: 'Périodes 4/5', week: '29/03/27 - 04/04/27', seance: 'Séance 2', chapter: 'Thème 3: Planète Terre & Environnement', sequence: '', task: 'Tâche 2: Cycle des saisons (Révolution terrestre).', ref: 'Terre', savoirFaire: 'C1.2', competence: 'P-P3', completed: false, realDate: '', observation: '' },
+                        { id: 55, period: 'P4_5', periodName: 'Périodes 4/5', week: '05/04/27 - 18/04/27', seance: 'Séances 3-4', chapter: 'Thème 3 : Géologie & Roches', sequence: '', task: 'Tâches 3-4: Éclipses solaires/lunaires & Roches sédimentaires.', ref: 'Géologie', savoirFaire: 'C2.1', competence: 'C-C1', completed: false, realDate: '', observation: '' },
+                        { id: 56, period: 'P4_5', periodName: 'Périodes 4/5', week: '05/04/27 - 18/04/27', seance: 'Séances 5-8', chapter: 'Thème 3 : Cycle des roches', sequence: '', task: 'Tâches 5-7: Roches métamorphiques, magmatiques & Schéma cycle.', ref: 'Géologie', savoirFaire: 'C2.2', competence: 'C-C3', completed: false, realDate: '', observation: '' },
+                        { id: 57, period: 'P4_5', periodName: 'Périodes 4/5', week: '17/05/27 - 06/06/27', seance: 'Séances 1-4', chapter: 'Thème 4 : Environnement & Climat', sequence: '', task: 'Thème 4: Cycle de l\'eau, Climat & Biodiversité (Impact Humain).', ref: 'Environnement', savoirFaire: 'D1.1', competence: 'C-C1/P3', completed: false, realDate: '', observation: '' },
+                        { id: 58, period: 'P4_5', periodName: 'Périodes 4/5', week: '17/05/27 - 06/06/27', seance: 'Séances 5-8', chapter: 'Thème 4 : Atténuation & Révisions', sequence: '', task: 'Réchauffement global: Pratiques d\'atténuation & révisions.', ref: 'Environnement', savoirFaire: 'D2.1', competence: 'P-P3', completed: false, realDate: '', observation: '' },
+                        { id: 59, period: 'P4_5', periodName: 'Périodes 4/5', week: '21/06/27 - 27/06/27', seance: 'Séance 10', chapter: 'Évaluation Sommative', sequence: '', task: 'CONTRÔLE SURVEILLÉ N°4', ref: 'CS N°4', savoirFaire: '', competence: 'Sommative 4', completed: false, isExam: true, realDate: '', observation: '' },
+                        { id: 60, period: 'P4_5', periodName: 'Périodes 4/5', week: '21/06/27 - 27/06/27', seance: 'S11-S12', chapter: 'Bilan Annuel', sequence: '', task: 'Consolidation globale de fin d\'année et bilan des compétences.', ref: 'Bilan Annuel', savoirFaire: '', competence: '', completed: false, realDate: '', observation: '' }
+                    ];
+                    this.saveLocalData();
+                },
+
+                filteredSessions() {
+                    return this.sessions.filter(s => {
+                        // Period Filter
+                        if (this.selectedPeriod !== 'ALL' && s.period !== this.selectedPeriod) {
+                            return false;
+                        }
+                        // Status Filter
+                        if (this.statusFilter === 'done' && !s.completed) return false;
+                        if (this.statusFilter === 'pending' && s.completed) return false;
+
+                        // Search Query Filter
+                        if (this.searchQuery.trim() !== '') {
+                            const q = this.searchQuery.toLowerCase();
+                            const matchesTask = s.task && s.task.toLowerCase().includes(q);
+                            const matchesChapter = s.chapter && s.chapter.toLowerCase().includes(q);
+                            const matchesSeance = s.seance && s.seance.toLowerCase().includes(q);
+                            const matchesObs = s.observation && s.observation.toLowerCase().includes(q);
+                            const matchesWeek = s.week && s.week.toLowerCase().includes(q);
+                            return matchesTask || matchesChapter || matchesSeance || matchesObs || matchesWeek;
+                        }
+
+                        return true;
+                    });
+                },
+
+                toggleStatus(session) {
+                    session.completed = !session.completed;
+                    if (session.completed && !session.realDate) {
+                        const today = new Date().toISOString().split('T')[0];
+                        session.realDate = today;
+                    }
+                    this.saveLocalData();
+                },
+
+                completedCount() {
+                    return this.sessions.filter(s => s.completed).length;
+                },
+
+                progressPercent() {
+                    if (!this.sessions.length) return 0;
+                    return Math.round((this.completedCount() / this.sessions.length) * 100);
+                },
+
+                openDetailModal(session) {
+                    this.activeSession = session;
+                    this.detailModalOpen = true;
+                },
+
+                saveLocalData() {
+                    localStorage.setItem('svt_cahier_data_2ac', JSON.stringify(this.sessions));
+                },
+
+                resetData() {
+                    if (confirm('Voulez-vous réinitialiser toutes les modifications et revenir à la planification originale ?')) {
+                        localStorage.removeItem('svt_cahier_data_2ac');
+                        this.loadDefaultSessions();
+                    }
+                },
+
+                exportJSON() {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.sessions, null, 2));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", "Cahier_de_Textes_SVT_2AC_Data.json");
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                }
+            };
+        }
+    </script>
+
+</body>
+</html>
